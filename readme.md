@@ -37,3 +37,7 @@ Install python modules:
 
 Execute:
 `python3 main.py`
+
+## License
+
+Licensed under the Anti-Capitalist Software License (ACSL). See the `LICENSE` file for full statement.
