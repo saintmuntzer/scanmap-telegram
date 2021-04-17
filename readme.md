@@ -1,16 +1,24 @@
-# [@scanmapchi](https://twitter.com/scanmapchi)
+# [@scanmapchi](https://twitter.com/scanmapchi) Telegram Relay
 
-Twitter bot for https://scanmap.live/chi. Modified from https://twitter.com/scanmapny bot made by https://github.com/jdiedrick.
+Telegram script for https://scanmap.mobi/chi. Forked from [scanmap-twitter](https://github.com/kalilsn/scanmap-twitter) and the [scanmapny bot](https://twitter.com/scanmapny) made by [jdiedrick](https://github.com/jdiedrick).
 
 ## Configuration
 
 Create `config.py`:
 `cp config.example.py config.py`
 
-Then add your Twitter API credentials and update `LOG_URL` if needed.
+Update the configuration with the following information.
+
+- `TELEGRAM_TOKEN` - Telegram Bot API token provided by [BotFather](https://t.me/botfather)
+- `TELEGRAM_CHAT` - chat ID of the group, channel, or user you want the messages sent to
+- `SITE_URL` - URL for your Scanmap site
+- `SITE_NAME` - name of your Scanmap site
+- `LOG_URL` - URL for your Scanmap site's JSON-formatted logs
+- `HASHTAGS` - any hashtags you want added to the Telegram messages; can be left blank
 
 ## Usage
-Running `main.py` will tweet the log entries that have been added since the timestamp in `./last_tweet`. If `./last_tweet` is not found, the script will just tweet the most recent entry.
+
+Running `main.py` will send the log entries that have been added since the timestamp in `./last_update`. If `./last_update` is not found, the script will just tweet the most recent entry.
 
 ### With docker
 

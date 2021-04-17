@@ -1,10 +1,9 @@
 import requests
-import tweepy
-import re
+from datetime import datetime
 
 import config
 
-LAST_TWEET_FILENAME = 'last_tweet'
+LAST_UPDATE_FILENAME = 'last_update'
 
 LABELS = {
   'alert': '⚠',
@@ -25,90 +24,66 @@ LABELS = {
 
 HASHTAGS = f'\n{config.HASHTAGS}' if hasattr(config, 'HASHTAGS') else ''
 
-# Tweet can be 280 characters, but this leaves some extra room for emoji,
-# which count as two characters
-MAX_TWEET_LENGTH = 270
+TELEGRAM_TOKEN = config.TELEGRAM_TOKEN
+TELEGRAM_CHAT = config.TELEGRAM_CHAT
+SITE_URL = config.SITE_URL
+SITE_NAME = config.SITE_NAME
 
 
-def setup_api():
-    auth = tweepy.OAuthHandler(config.CONSUMER_KEY, config.CONSUMER_SECRET)
-    auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
-
-    return tweepy.API(auth)
-
-
-# Read the timestamp of the last log item tweeted from a file
+# Reads (from file) the timestamp of the last log item sent
 # Returns None if not found
 def get_last_timestamp():
-    last_log_tweeted = None
+    last_update_sent = None
 
     try:
-        with open(LAST_TWEET_FILENAME, 'r') as f:
-            last_log_tweeted = float(f.read())
+        with open(LAST_UPDATE_FILENAME, 'r') as f:
+            last_update_sent = float(f.read())
     except FileNotFoundError:
         pass
     except Exception as e:
-        # Treat any kind of error as if we haven't tweeted before
+        # Treat any kind of error as if we haven't sent updates before
         print(e)
 
-    return last_log_tweeted
+    return last_update_sent
 
 
 # Write the given timestamp to a file for reading on the next execution
 def save_last_timestamp(timestamp):
-    print(f'Updating last tweet file with timestamp {timestamp}')
-    with open(LAST_TWEET_FILENAME, 'w') as f:
+    print(f'Updating last update file with timestamp {timestamp}')
+    with open(LAST_UPDATE_FILENAME, 'w') as f:
         f.write(timestamp)
 
 
-# Render a log item to a tweetable string
-def format_tweet(data):
+# Render a log item to a formatted string for Telegram
+def format_message(data, timestamp):
     emoji = LABELS.get(data['label'], '')
     label = data['label'].replace('_', ' ').capitalize() if data['label'] != 'other' else ''
+    time = datetime.fromtimestamp(float(timestamp)).strftime('%I:%M%p\n%m/%d/%Y')
 
-    return f"{emoji + ' ' if emoji else ''}{label + ' at ' if label else ''}{data['location']}\n{data['text']}"
+    return f"{emoji + ' ' if emoji else ''}{label + ' at ' if label else ''}{data['location']}\n{data['text']}\n\n{time}\nvia <a href='{SITE_URL}'>{SITE_NAME}</a>"
 
 
-# Tweet a log item and return the timestamp
-# If the formatted tweet is too long for a single tweet, item is broken into
-# a thread.
-def tweet_log_item(api, log):
-    tweet = format_tweet(log['data'])
-    length = MAX_TWEET_LENGTH - len(HASHTAGS)
-
-    if len(tweet) < length :
-        print(tweet)
-        api.update_status(tweet + HASHTAGS)
-    else:
-        # Chunk string into tweets
-        tweets = re.findall(f".{{1,{length}}}", tweet, flags=re.S)
-        print("Splitting tweet...")
-        # Tweet message as a thread
-        id = None
-        for tweet in tweets:
-            print(tweet)
-            print('')
-            id = api.update_status(tweet + HASHTAGS, in_reply_to_status_id=id).id
-
-    print('-----------------------')
+# Send a log item via Telegram bot and return the timestamp
+def send_log_item(log):
+    message = format_message(log['data'], log['timestamp'])
+    params = {"chat_id": TELEGRAM_CHAT, "text": message, "disable_web_page_preview": True, "parse_mode": "HTML"}
+    requests.request("GET", f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", params=params)
 
     return log['timestamp']
 
 
 # Tweet any log updates from scanmap since the last execution
 def main():
-    api = setup_api()
-
     response = requests.get(config.LOG_URL)
     parsed_response = response.json()
     logs = parsed_response['logs']
 
-    last_log_tweeted = get_last_timestamp()
-    if last_log_tweeted:
-        latest_logs = [log for log in logs if float(log['timestamp']) > last_log_tweeted]
-        print(f"{len(latest_logs)} new logs to tweet")
+    last_update_sent = get_last_timestamp()
+    if last_update_sent:
+        latest_logs = [log for log in logs if float(log['timestamp']) > last_update_sent]
+        print(f"{len(latest_logs)} new logs to send")
     else:
-        print('Timestamp for last log tweeted not found. Tweeting most recent log line only')
+        print('Timestamp for last log sent not found. Sending most recent log line only')
         latest_logs = [logs[-1]]
 
     if len(latest_logs) == 0:
@@ -117,19 +92,14 @@ def main():
     last_timestamp = None
     for log in latest_logs:
         try:
-            last_timestamp = tweet_log_item(api, log)
-        except tweepy.TweepError as e:
-            # Continue on duplicate status error
-            if e.api_code == 187:
-                print("Duplicate status, continuing")
-                last_timestamp = log['timestamp']
-                continue
-            else:
-                print(e)
-                break
+            last_timestamp = send_log_item(log)
+            print(last_timestamp)
+        except:
+            print('Unexpected error.')
+            break
 
     if last_timestamp:
         save_last_timestamp(last_timestamp)
 
-
-main()
+if __name__ == '__main__':
+    main()
