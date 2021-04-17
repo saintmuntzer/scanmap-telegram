@@ -1,6 +1,6 @@
 # [@scanmapchi](https://twitter.com/scanmapchi) Telegram Relay
 
-Telegram script for https://scanmap.mobi/chi. Forked from [scanmap-twitter](https://github.com/kalilsn/scanmap-twitter) and the [scanmapny bot](https://twitter.com/scanmapny) made by [jdiedrick](https://github.com/jdiedrick).
+Telegram script for https://scanmap.mobi/chi. Forked from [scanmap-twitter](https://github.com/kalilsn/scanmap-twitter) and the [scanmapny](https://twitter.com/scanmapny) bot.
 
 ## Configuration
 
