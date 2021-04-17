@@ -40,4 +40,4 @@ Execute:
 
 ## License
 
-Licensed under the Anti-Capitalist Software License (ACSL). See the `LICENSE` file for full statement.
+Licensed under the [Anti-Capitalist Software License (ACSL)](https://anticapitalist.software/). See the `LICENSE` file for full statement.
