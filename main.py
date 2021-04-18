@@ -63,7 +63,7 @@ def format_message(data, timestamp):
     label = data['label'].replace('_', ' ').capitalize() if data['label'] != 'other' else ''
     time = datetime.fromtimestamp(float(timestamp)).strftime('%I:%M%p\n%m/%d/%Y')
 
-    return f"{emoji + ' ' if emoji else ''}{label + ' at ' if label else ''}{data['location']}\n{data['text']}\n\n{time}\nvia <a href='{SITE_URL}'>{SITE_NAME}</a>"
+    return f"{emoji + ' ' if emoji else ''}{label + ' at ' if label else ''}{data['location']}\n{data['text']}\n{HASHTAGS}\n\n{time}\nvia <a href='{SITE_URL}'>{SITE_NAME}</a>"
 
 # Send a log item via Telegram bot and return the timestamp, or None on failure
 def send_log_item(log):
