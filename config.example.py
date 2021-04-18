@@ -6,3 +6,7 @@ SITE_NAME = 'Scanmap Chicago'
 LOG_URL = 'https://scanmap.mobi/chi/log/event'
 
 HASHTAGS = '#scanmap #chicagoscanner'
+
+# Daemon mode defaults to False if not set
+DAEMON = True
+UPDATE_INTERVAL = 30

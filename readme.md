@@ -15,6 +15,8 @@ Update the configuration with the following information.
 - `SITE_NAME` - name of your Scanmap site
 - `LOG_URL` - URL for your Scanmap site's JSON-formatted logs
 - `HASHTAGS` - any hashtags you want added to the Telegram messages; can be left blank
+- `DAEMON` - run as long running process if set to True. defaults to False if unset
+- `UPDATE_INTERVAL` - an integer of seconds to wait between checking for updates. defaults to 30 if unset. this is only used in while running in daemon mode.
 
 ## Usage
 
