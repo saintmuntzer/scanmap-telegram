@@ -35,27 +35,36 @@ UPDATE_INTERVAL = config.UPDATE_INTERVAL if hasattr(config, 'UPDATE_INTERVAL') e
 
 APP_STARTUP_TIME = time.time()
 
+last_update_sent = None
+
 # Reads (from file) the timestamp of the last log item sent
 # Returns None if not found
 def get_last_timestamp():
-    last_update_sent = None
-    try:
-        with open(LAST_UPDATE_FILENAME, 'r') as f:
-            last_update_sent = float(f.read())
-    except FileNotFoundError:
-        logging.debug('Last update file not found.')
-        pass
-    except Exception as e:
-        # Treat any kind of error as if we haven't sent updates before
-        logging.exception('Error while reading the last update file.')
+    global last_update_sent
+    if last_update_sent == None:
+        try:
+            with open(LAST_UPDATE_FILENAME, 'r') as f:
+                last_update_sent = float(f.read())
+        except FileNotFoundError:
+            logging.debug('Last update file not found.')
+            pass
+        except Exception as e:
+            # Treat any kind of error as if we haven't sent updates before
+            logging.exception('Error while reading the last update file.')
 
     return last_update_sent
 
 # Write the given timestamp to a file for reading on the next execution
 def save_last_timestamp(timestamp):
+    global last_update_sent
     logging.info(f'Updating last update file with timestamp {timestamp}')
-    with open(LAST_UPDATE_FILENAME, 'w') as f:
-        f.write(timestamp)
+    last_update_sent = float(timestamp)
+    try:
+        with open(LAST_UPDATE_FILENAME, 'w') as f:
+            f.write(timestamp)
+    except Exception as e:
+        logging.exception('Error while writing last update to file.')
+        
 
 # Render a log item to a formatted string for Telegram
 def format_message(data, timestamp):
